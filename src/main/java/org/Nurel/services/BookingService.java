@@ -2,10 +2,12 @@ package org.Nurel.services;
 
 import org.Nurel.models.Reservation;
 import org.Nurel.models.Table;
+import org.Nurel.database.DatabaseConfig;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
 
 public class BookingService {
     // 1. In-memory database (while the program is running)
@@ -16,6 +18,32 @@ public class BookingService {
     public void addTable(Table table){
         tables.add(table);
         System.out.println("LOG: added " + table);
+    }
+
+    public void loadTablesFromDB() {
+        String sql = "SELECT * FROM tables";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            this.tables.clear();
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                int capacity = rs.getInt("Capacity");
+                String zone = rs.getString("zone");
+
+                Table tableFromDb = new Table(id, capacity, zone);
+                this.tables.add(tableFromDb);
+            }
+
+            System.out.println("LOG: Successfully loaded tables from the database: " + tables.size());
+
+        } catch (SQLException e) {
+            System.out.println("Error loading from the database:" + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public boolean reserveTable(String guestName, int tableId, LocalDateTime dateTime){
