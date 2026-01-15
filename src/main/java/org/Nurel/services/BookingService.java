@@ -28,21 +28,37 @@ public class BookingService {
             }
         }
 
-        if (foundTable != null){
-            Reservation newReservation = new Reservation(guestName, foundTable, dateTime);
-
+        if (foundTable == null){
+            System.out.println("❌ ERROR: Table with ID " + tableId + " doesn't exist.");
+            return false;
+        }
+        // 2. Checking time: Is it available?
+        if (isTableFree(foundTable,dateTime)){
+            Reservation newReservation = new Reservation(guestName,foundTable,dateTime);
             reservations.add(newReservation);
-
-            System.out.println("✅ SUCCESS: Reservation created for " + guestName);
+            System.out.println("✅ SUCCESS: Reservation for " + guestName + " on " + dateTime);
             return true;
         } else {
-            System.out.println("❌ ERROR: Table with ID " + tableId + " doesn't exist.");
+            System.out.println("❌ REJECTED: Table №" + tableId + " is busy at this time");
             return false;
         }
     }
 
+    private boolean isTableFree(Table table, LocalDateTime newTime){
+        for (Reservation existing : reservations){
+            if (existing.getTable().getId() == table.getId()){
+                LocalDateTime existingTime = existing.getDateTime();
+
+                if (existingTime.isBefore(newTime.plusHours(2)) && newTime.isBefore(existingTime.plusHours(2))){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     public void printAllReservations() {
-        // Просто пробегаем по списку и печатаем каждую бронь
+        System.out.println("--- List of reservations ---");
         for (Reservation r : reservations) {
             System.out.println(r);
         }
