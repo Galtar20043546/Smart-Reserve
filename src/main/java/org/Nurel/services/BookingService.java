@@ -64,7 +64,11 @@ public class BookingService {
         if (isTableFree(foundTable,dateTime)){
             Reservation newReservation = new Reservation(guestName,foundTable,dateTime);
             reservations.add(newReservation);
+
             System.out.println("✅ SUCCESS: Reservation for " + guestName + " on " + dateTime);
+
+            runPythonScript(guestName,dateTime.toString());
+
             return true;
         } else {
             System.out.println("❌ REJECTED: Table №" + tableId + " is busy at this time");
@@ -89,6 +93,28 @@ public class BookingService {
         System.out.println("--- List of reservations ---");
         for (Reservation r : reservations) {
             System.out.println(r);
+        }
+    }
+
+    public void runPythonScript(String guestName, String timeString) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "Python",
+                    "notification.py",
+                    guestName,
+                    timeString
+            );
+
+            // Magic; telling java to display Python output (print) in the Java console
+            pb.inheritIO();
+
+            // Running the process
+            Process process = pb.start();
+
+            // Waiting for Python to finish its work (so that the messages don't get mixed up)
+            process.waitFor();
+        } catch (Exception e) {
+            System.out.println("⚠\uFE0F  Couldn't  launch Pytin script " + e.getMessage());
         }
     }
 }
